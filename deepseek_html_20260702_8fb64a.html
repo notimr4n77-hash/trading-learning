@@ -1,0 +1,3598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>Trading Learning • Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  
+  <style>
+    /* ... (same CSS as before) ... */
+    /* Keeping all styles same for brevity */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      background: #0b0b0f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      margin: 0;
+    }
+
+    #loginPage {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 24px;
+      background: rgba(14, 16, 22, 0.92);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 0;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    @media (min-width: 520px) {
+      #loginPage {
+        border-radius: 40px;
+        min-height: 90vh;
+        max-height: 95vh;
+        margin: 20px auto;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+      }
+    }
+
+    #loginPage.hidden {
+      display: none;
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .login-logo i {
+      font-size: 60px;
+      color: #f5b342;
+      margin-bottom: 16px;
+      display: block;
+      filter: drop-shadow(0 0 30px rgba(245, 179, 66, 0.15));
+    }
+
+    .login-logo h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #f5b342;
+      letter-spacing: -0.5px;
+    }
+
+    .login-logo p {
+      color: rgba(255, 215, 100, 0.4);
+      font-size: 14px;
+      letter-spacing: 2px;
+      margin-top: 6px;
+    }
+
+    .login-box {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 28px;
+      padding: 30px 24px;
+      border: 1px solid rgba(255, 215, 100, 0.06);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .login-box .form-group {
+      margin-bottom: 18px;
+    }
+
+    .login-box .form-group label {
+      display: block;
+      color: rgba(255, 215, 100, 0.5);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .login-box .form-group input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 215, 100, 0.08);
+      border-radius: 14px;
+      color: #f5b342;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .login-box .form-group input:focus {
+      border-color: rgba(245, 179, 66, 0.3);
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: 0 0 0 3px rgba(245, 179, 66, 0.05);
+    }
+
+    .login-box .form-group input::placeholder {
+      color: rgba(255, 215, 100, 0.2);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(245, 179, 66, 0.15), rgba(245, 179, 66, 0.05));
+      border: 1px solid rgba(245, 179, 66, 0.2);
+      border-radius: 14px;
+      color: #f5b342;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      letter-spacing: 0.5px;
+      margin-top: 8px;
+    }
+
+    .login-btn:hover {
+      background: linear-gradient(135deg, rgba(245, 179, 66, 0.25), rgba(245, 179, 66, 0.08));
+      border-color: rgba(245, 179, 66, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(245, 179, 66, 0.1);
+    }
+
+    .login-btn:active {
+      transform: scale(0.97);
+    }
+
+    .login-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .login-error {
+      color: #ff4757;
+      font-size: 14px;
+      margin-top: 12px;
+      text-align: center;
+      display: none;
+      padding: 12px;
+      background: rgba(255, 71, 87, 0.08);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 71, 87, 0.1);
+      font-weight: 500;
+    }
+
+    .login-error.show {
+      display: block;
+    }
+
+    .login-success {
+      color: #2ed573;
+      font-size: 13px;
+      margin-top: 12px;
+      text-align: center;
+      display: none;
+      padding: 10px;
+      background: rgba(46, 213, 115, 0.08);
+      border-radius: 10px;
+      border: 1px solid rgba(46, 213, 115, 0.1);
+    }
+
+    .login-success.show {
+      display: block;
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 20px;
+      color: rgba(255, 215, 100, 0.2);
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .forgot-link {
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    .forgot-link a {
+      color: rgba(255, 215, 100, 0.3);
+      font-size: 13px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      letter-spacing: 0.5px;
+    }
+
+    .forgot-link a:hover {
+      color: #f5b342;
+    }
+
+    .forgot-modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .forgot-modal-overlay.active {
+      display: flex;
+    }
+
+    .forgot-modal-box {
+      background: rgba(14, 16, 22, 0.98);
+      border: 1px solid rgba(255, 215, 100, 0.1);
+      border-radius: 28px;
+      padding: 35px 28px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.9);
+      animation: fadeSlide 0.3s ease;
+    }
+
+    .forgot-modal-box h3 {
+      color: #f5b342;
+      font-size: 22px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .forgot-modal-box .sub-text {
+      color: rgba(255, 215, 100, 0.3);
+      text-align: center;
+      font-size: 13px;
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+    }
+
+    .forgot-modal-box .form-group {
+      margin-bottom: 16px;
+    }
+
+    .forgot-modal-box .form-group label {
+      display: block;
+      color: rgba(255, 215, 100, 0.4);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .forgot-modal-box .form-group input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 215, 100, 0.08);
+      border-radius: 14px;
+      color: #f5b342;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .forgot-modal-box .form-group input:focus {
+      border-color: rgba(245, 179, 66, 0.3);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .forgot-modal-box .form-group input:disabled {
+      opacity: 0.5;
+    }
+
+    .forgot-modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .forgot-modal-actions button {
+      flex: 1;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 15px;
+    }
+
+    .forgot-modal-actions .btn-send {
+      background: linear-gradient(135deg, rgba(245, 179, 66, 0.15), rgba(245, 179, 66, 0.05));
+      border: 1px solid rgba(245, 179, 66, 0.2);
+      color: #f5b342;
+    }
+
+    .forgot-modal-actions .btn-send:hover {
+      background: linear-gradient(135deg, rgba(245, 179, 66, 0.25), rgba(245, 179, 66, 0.08));
+      transform: translateY(-2px);
+    }
+
+    .forgot-modal-actions .btn-cancel {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .forgot-modal-actions .btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .forgot-modal-actions .btn-send:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .forgot-status {
+      text-align: center;
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .forgot-status.success {
+      display: block;
+      color: #2ed573;
+      background: rgba(46, 213, 115, 0.08);
+      border: 1px solid rgba(46, 213, 115, 0.1);
+    }
+
+    .forgot-status.error {
+      display: block;
+      color: #ff4757;
+      background: rgba(255, 71, 87, 0.08);
+      border: 1px solid rgba(255, 71, 87, 0.1);
+    }
+
+    #signupPage {
+      display: none;
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 24px;
+      background: rgba(14, 16, 22, 0.92);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 0;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    #signupPage.active {
+      display: flex;
+    }
+
+    @media (min-width: 520px) {
+      #signupPage {
+        border-radius: 40px;
+        min-height: 90vh;
+        max-height: 95vh;
+        margin: 20px auto;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+      }
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      height: auto;
+      margin: 0 auto;
+      background: rgba(14, 16, 22, 0.92);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      padding: 28px 22px 18px;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 0 0 1px rgba(255, 215, 100, 0.04);
+      border-radius: 0;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .app-container.active {
+      display: flex;
+    }
+
+    @media (min-width: 520px) {
+      .app-container {
+        border-radius: 40px;
+        min-height: 90vh;
+        max-height: 95vh;
+        margin: 20px auto;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+      }
+    }
+
+    .app-header {
+      margin-bottom: 22px;
+      padding-left: 2px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .app-header .header-left h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #f5b342;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-header .header-left h1 i {
+      color: #f5b342;
+      font-size: 26px;
+    }
+
+    .app-header .header-left .sub {
+      color: #f5b342;
+      opacity: 0.7;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.8px;
+      margin-top: 4px;
+      padding-left: 2px;
+    }
+
+    .logout-btn {
+      background: rgba(255, 71, 87, 0.08);
+      border: 1px solid rgba(255, 71, 87, 0.1);
+      color: #ff6b6b;
+      padding: 8px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 71, 87, 0.15);
+      border-color: rgba(255, 71, 87, 0.2);
+      transform: scale(1.02);
+    }
+
+    .logout-btn i {
+      font-size: 14px;
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(245, 179, 66, 0.06);
+      padding: 6px 14px 6px 10px;
+      border-radius: 30px;
+      border: 1px solid rgba(245, 179, 66, 0.08);
+    }
+
+    .user-badge .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(245, 179, 66, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f5b342;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .user-badge .user-email {
+      color: rgba(255, 215, 100, 0.6);
+      font-size: 12px;
+      font-weight: 500;
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .social-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 28px;
+      flex-shrink: 0;
+    }
+
+    .social-card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 28px;
+      padding: 18px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border: 1px solid rgba(255, 215, 100, 0.06);
+      box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.6);
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      cursor: pointer;
+      text-decoration: none;
+      color: #fff;
+      min-height: 96px;
+    }
+    .social-card:hover {
+      transform: scale(1.02);
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(255, 215, 100, 0.2);
+    }
+    .social-card:active {
+      transform: scale(0.96);
+    }
+
+    .social-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+    }
+    .social-label {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      color: #f5b342;
+    }
+
+    .telegram i { color: #26A5E4; }
+    .youtube i { color: #FF0000; }
+    .instagram i { color: #E4405F; }
+    .discord i { color: #5865F2; }
+
+    .learning-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .learn-box {
+      background: rgba(18, 20, 30, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 28px;
+      padding: 20px 14px 18px;
+      border: 1px solid rgba(255, 215, 100, 0.08);
+      box-shadow: 0 10px 18px -10px rgba(0, 0, 0, 0.7);
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: space-between;
+      min-height: 130px;
+    }
+    .learn-box:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 215, 100, 0.25);
+      background: rgba(24, 26, 38, 0.8);
+    }
+    .learn-box:active {
+      transform: scale(0.97);
+    }
+
+    .box-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .box-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(245, 179, 66, 0.08);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f5b342;
+      font-size: 22px;
+      border: 1px solid rgba(245, 179, 66, 0.1);
+    }
+    .box-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #f5b342;
+      letter-spacing: -0.2px;
+      line-height: 1.2;
+    }
+    .box-sub {
+      font-size: 12px;
+      color: rgba(255, 215, 100, 0.4);
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+    .box-arrow {
+      align-self: flex-end;
+      color: rgba(245, 179, 66, 0.5);
+      font-size: 18px;
+      margin-top: 8px;
+    }
+
+    .bottom-nav {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: rgba(10, 12, 18, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 40px;
+      padding: 10px 8px;
+      margin-top: 18px;
+      border: 1px solid rgba(255, 215, 100, 0.08);
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+      flex-shrink: 0;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255, 215, 100, 0.35);
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 18px;
+      border-radius: 30px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      position: relative;
+    }
+    .nav-btn i {
+      font-size: 20px;
+      margin-bottom: 2px;
+      transition: 0.2s;
+    }
+    .nav-btn span {
+      font-size: 11px;
+      opacity: 0.7;
+    }
+
+    .nav-btn.active {
+      color: #f5b342;
+      background: rgba(245, 179, 66, 0.08);
+    }
+    .nav-btn.active i {
+      color: #f5b342;
+    }
+    .nav-btn:hover {
+      color: rgba(255, 215, 100, 0.7);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .nav-btn:active {
+      transform: scale(0.94);
+    }
+
+    .page-view {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      animation: fadeSlide 0.25s ease;
+    }
+    .page-view.active {
+      display: flex;
+    }
+
+    @keyframes fadeSlide {
+      0% { opacity: 0; transform: translateY(12px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .courses-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .course-box {
+      background: rgba(18, 20, 30, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 28px;
+      padding: 24px 14px 20px;
+      border: 1px solid rgba(255, 215, 100, 0.08);
+      box-shadow: 0 10px 18px -10px rgba(0, 0, 0, 0.7);
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+      min-height: 130px;
+      justify-content: center;
+    }
+    .course-box:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 215, 100, 0.25);
+      background: rgba(24, 26, 38, 0.8);
+    }
+    .course-box:active {
+      transform: scale(0.97);
+    }
+    .course-box .course-icon {
+      font-size: 32px;
+      color: #f5b342;
+      opacity: 0.8;
+    }
+    .course-box .course-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #f5b342;
+      letter-spacing: -0.2px;
+    }
+    .course-box .course-sub {
+      font-size: 12px;
+      color: rgba(255, 215, 100, 0.4);
+      letter-spacing: 0.5px;
+    }
+
+    .course-detail {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      animation: fadeSlide 0.25s ease;
+    }
+    .course-detail.active {
+      display: flex;
+    }
+
+    .back-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      flex-shrink: 0;
+    }
+    .back-btn {
+      background: rgba(255,255,255,0.04);
+      border: none;
+      color: #f5b342;
+      font-size: 24px;
+      width: 44px;
+      height: 44px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,215,100,0.08);
+    }
+    .back-btn:hover {
+      background: rgba(255,215,100,0.08);
+      transform: scale(1.03);
+    }
+
+    .detail-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f5b342;
+      letter-spacing: -0.2px;
+    }
+    .detail-market {
+      color: rgba(255,215,100,0.6);
+      font-size: 14px;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+    .detail-badge {
+      display: inline-block;
+      background: rgba(245, 179, 66, 0.12);
+      color: #f5b342;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 30px;
+      margin-top: 6px;
+      border: 1px solid rgba(245, 179, 66, 0.15);
+    }
+
+    .course-image {
+      width: 100%;
+      border-radius: 20px;
+      overflow: hidden;
+      margin: 8px 0 16px 0;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 1px solid rgba(255, 215, 100, 0.08);
+      aspect-ratio: 4 / 3;
+      position: relative;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+    .course-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+    .course-image:hover img {
+      transform: scale(1.02);
+    }
+
+    .course-image::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40%;
+      background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+      pointer-events: none;
+      border-radius: 0 0 20px 20px;
+    }
+
+    .detail-description {
+      margin-top: 4px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 24px;
+      padding: 22px 20px;
+      border: 1px solid rgba(255,215,100,0.04);
+    }
+    .detail-description h3 {
+      color: #f5b342;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      letter-spacing: 0.5px;
+    }
+    .detail-description p {
+      color: #f5b342;
+      opacity: 0.8;
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+    .detail-description ul {
+      list-style: none;
+      padding: 0;
+    }
+    .detail-description ul li {
+      color: #f5b342;
+      opacity: 0.7;
+      font-size: 14px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,215,100,0.03);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .detail-description ul li i {
+      color: #f5b342;
+      width: 20px;
+      font-size: 14px;
+    }
+
+    .video-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .video-item {
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 16px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,215,100,0.05);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: 0.2s;
+      cursor: pointer;
+      box-shadow: 0 4px 12px -6px rgba(0,0,0,0.5);
+    }
+    .video-item:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(245,179,66,0.15);
+    }
+    .video-item .video-thumb {
+      width: 80px;
+      height: 60px;
+      border-radius: 12px;
+      background: rgba(245,179,66,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f5b342;
+      font-size: 24px;
+      flex-shrink: 0;
+      border: 1px solid rgba(245,179,66,0.05);
+      overflow: hidden;
+      position: relative;
+    }
+    .video-item .video-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .video-item .video-thumb .play-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 28px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    .video-item .video-info {
+      flex: 1;
+    }
+    .video-item .video-info .video-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #f5b342;
+      letter-spacing: 0.2px;
+    }
+    .video-item .video-info .video-desc {
+      font-size: 12px;
+      color: rgba(255,215,100,0.4);
+      margin-top: 2px;
+    }
+    .video-item .video-play {
+      color: rgba(255,215,100,0.2);
+      font-size: 18px;
+    }
+
+    .home-detail {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      animation: fadeSlide 0.25s ease;
+    }
+    .home-detail.active {
+      display: flex;
+    }
+
+    .option-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 6px;
+      flex: 1;
+    }
+    .option-item {
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 20px;
+      padding: 18px 20px;
+      border: 1px solid rgba(255,215,100,0.05);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: 0.2s;
+      cursor: pointer;
+      box-shadow: 0 4px 12px -6px rgba(0,0,0,0.5);
+    }
+    .option-item:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(245,179,66,0.15);
+    }
+    .option-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(245,179,66,0.06);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f5b342;
+      font-size: 18px;
+      border: 1px solid rgba(245,179,66,0.05);
+    }
+    .option-text {
+      flex: 1;
+      font-size: 16px;
+      font-weight: 500;
+      color: #f5b342;
+      letter-spacing: 0.2px;
+    }
+    .option-arrow {
+      color: rgba(255,215,100,0.15);
+      font-size: 16px;
+    }
+
+    .video-detail {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      animation: fadeSlide 0.25s ease;
+    }
+    .video-detail.active {
+      display: flex;
+    }
+
+    .video-player-container {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      margin: 8px 0 16px 0;
+      border: 1px solid rgba(255,215,100,0.08);
+    }
+    .video-player-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .video-player-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+    .video-player-container .video-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,215,100,0.3);
+      gap: 16px;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+    }
+    .video-player-container .video-placeholder i {
+      font-size: 48px;
+      color: #f5b342;
+      opacity: 0.3;
+    }
+    .video-player-container .video-placeholder p {
+      font-size: 14px;
+      letter-spacing: 2px;
+      color: #f5b342;
+      opacity: 0.3;
+    }
+
+    .video-detail-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #f5b342;
+      margin-bottom: 6px;
+    }
+    .video-detail-desc {
+      font-size: 14px;
+      color: rgba(255,215,100,0.5);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    #homeView {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    #homeView.hidden {
+      display: none;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 30px 0;
+      color: rgba(255,215,100,0.3);
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+    .loading i {
+      margin-right: 10px;
+      animation: spin 1s linear infinite;
+      color: #f5b342;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .profile-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 0;
+      flex: 1;
+    }
+
+    .profile-avatar {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .profile-avatar img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid rgba(245, 179, 66, 0.3);
+      box-shadow: 0 0 40px rgba(245, 179, 66, 0.1);
+      background: rgba(245, 179, 66, 0.1);
+    }
+
+    .profile-avatar .avatar-placeholder {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(245, 179, 66, 0.08);
+      border: 3px solid rgba(245, 179, 66, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      color: #f5b342;
+      font-weight: 700;
+    }
+
+    .profile-avatar .edit-avatar-btn {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      background: rgba(245, 179, 66, 0.15);
+      border: 1px solid rgba(245, 179, 66, 0.2);
+      color: #f5b342;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .profile-avatar .edit-avatar-btn:hover {
+      background: rgba(245, 179, 66, 0.25);
+      transform: scale(1.05);
+    }
+
+    .profile-name {
+      font-size: 24px;
+      font-weight: 700;
+      color: #f5b342;
+      margin-bottom: 4px;
+    }
+
+    .profile-role {
+      color: rgba(255, 215, 100, 0.4);
+      font-size: 13px;
+      letter-spacing: 2px;
+      margin-bottom: 24px;
+    }
+
+    .profile-card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid rgba(255, 215, 100, 0.06);
+      margin-bottom: 16px;
+    }
+
+    .profile-field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255, 215, 100, 0.04);
+    }
+
+    .profile-field:last-child {
+      border-bottom: none;
+    }
+
+    .profile-field .field-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .profile-field .field-left i {
+      width: 20px;
+      color: rgba(245, 179, 66, 0.4);
+      font-size: 16px;
+    }
+
+    .profile-field .field-left .field-label {
+      color: rgba(255, 215, 100, 0.4);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .profile-field .field-value {
+      color: #f5b342;
+      font-size: 14px;
+      font-weight: 500;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .profile-field .field-value.empty {
+      color: rgba(255, 215, 100, 0.2);
+      font-style: italic;
+    }
+
+    .profile-field .edit-field-btn {
+      background: rgba(245, 179, 66, 0.06);
+      border: 1px solid rgba(245, 179, 66, 0.08);
+      color: rgba(245, 179, 66, 0.5);
+      padding: 4px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 11px;
+      transition: all 0.3s ease;
+      margin-left: 8px;
+    }
+
+    .profile-field .edit-field-btn:hover {
+      background: rgba(245, 179, 66, 0.12);
+      color: #f5b342;
+    }
+
+    .profile-field .edit-field-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .profile-field .field-verified {
+      color: #2ed573;
+      font-size: 12px;
+      margin-left: 6px;
+    }
+
+    .profile-plan {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(245, 179, 66, 0.05), rgba(245, 179, 66, 0.01));
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid rgba(245, 179, 66, 0.1);
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .profile-plan .plan-icon {
+      font-size: 32px;
+      color: #f5b342;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .profile-plan .plan-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #f5b342;
+    }
+
+    .profile-plan .plan-status {
+      font-size: 12px;
+      color: rgba(255, 215, 100, 0.3);
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    .profile-plan .plan-badge {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 4px 16px;
+      background: rgba(245, 179, 66, 0.12);
+      border: 1px solid rgba(245, 179, 66, 0.15);
+      border-radius: 30px;
+      color: #f5b342;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    @media (max-width: 420px) {
+      .app-container { padding: 18px 14px 14px; }
+      #loginPage { padding: 20px 16px; }
+      #signupPage { padding: 20px 16px; }
+      .learn-box { min-height: 114px; padding: 16px 12px; }
+      .box-title { font-size: 16px; }
+      .social-card { min-height: 80px; }
+      .bottom-nav { padding: 8px 4px; }
+      .nav-btn { padding: 4px 12px; font-size: 12px; }
+      .nav-btn i { font-size: 18px; }
+      .course-box { min-height: 110px; padding: 18px 10px; }
+      .video-item .video-thumb { width: 60px; height: 50px; font-size: 16px; }
+      .login-box { padding: 20px 16px; }
+      .profile-avatar img { width: 90px; height: 90px; }
+      .profile-avatar .avatar-placeholder { width: 90px; height: 90px; font-size: 36px; }
+      .profile-name { font-size: 20px; }
+      .profile-field .field-value { max-width: 120px; font-size: 13px; }
+      .forgot-modal-box { padding: 25px 18px; }
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: rgba(14, 16, 22, 0.95);
+      border: 1px solid rgba(255, 215, 100, 0.1);
+      border-radius: 28px;
+      padding: 30px 24px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    }
+
+    .modal-box h3 {
+      color: #f5b342;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .modal-box .form-group {
+      margin-bottom: 16px;
+    }
+
+    .modal-box .form-group label {
+      display: block;
+      color: rgba(255, 215, 100, 0.4);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .modal-box .form-group input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 215, 100, 0.08);
+      border-radius: 14px;
+      color: #f5b342;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .modal-box .form-group input:focus {
+      border-color: rgba(245, 179, 66, 0.3);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .modal-box .form-group .hint {
+      color: rgba(255, 215, 100, 0.2);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .modal-actions button {
+      flex: 1;
+      padding: 12px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .modal-actions .btn-save {
+      background: linear-gradient(135deg, rgba(245, 179, 66, 0.15), rgba(245, 179, 66, 0.05));
+      border: 1px solid rgba(245, 179, 66, 0.2);
+      color: #f5b342;
+    }
+
+    .modal-actions .btn-save:hover {
+      background: linear-gradient(135deg, rgba(245, 179, 66, 0.25), rgba(245, 179, 66, 0.08));
+      transform: translateY(-2px);
+    }
+
+    .modal-actions .btn-cancel {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .modal-actions .btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .upload-progress {
+      display: none;
+      text-align: center;
+      padding: 10px;
+      color: rgba(255, 215, 100, 0.5);
+      font-size: 13px;
+    }
+
+    .upload-progress.show {
+      display: block;
+    }
+
+    .upload-progress .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 215, 100, 0.1);
+      border-radius: 4px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .upload-progress .progress-bar .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f5b342, #f7c948);
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    #profilePage {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+    }
+    #profilePage.active {
+      display: flex;
+    }
+
+    .buy-course-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: linear-gradient(135deg, #f5b342, #e89c2e);
+      color: #0b0b0f;
+      border: none;
+      padding: 16px 24px;
+      border-radius: 16px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 16px;
+      width: 100%;
+      box-shadow: 0 4px 20px rgba(245, 179, 66, 0.25);
+    }
+    .buy-course-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(245, 179, 66, 0.35);
+    }
+    .buy-course-btn:active {
+      transform: scale(0.97);
+    }
+    .buy-course-btn i {
+      font-size: 22px;
+    }
+    .buy-course-btn .price-tag {
+      background: rgba(0,0,0,0.15);
+      padding: 4px 14px;
+      border-radius: 30px;
+      font-size: 16px;
+    }
+
+    .payment-modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(10px);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .payment-modal-overlay.active {
+      display: flex;
+    }
+
+    .payment-modal-box {
+      background: rgba(14, 16, 22, 0.98);
+      border: 1px solid rgba(255, 215, 100, 0.1);
+      border-radius: 28px;
+      padding: 30px 24px;
+      max-width: 460px;
+      width: 100%;
+      max-height: 95vh;
+      overflow-y: auto;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.9);
+      animation: fadeSlide 0.3s ease;
+    }
+    .payment-modal-box .payment-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .payment-modal-box .payment-header .course-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #f5b342;
+    }
+    .payment-modal-box .payment-header .price-display {
+      font-size: 28px;
+      font-weight: 800;
+      color: #f5b342;
+      margin: 8px 0;
+    }
+    .payment-modal-box .payment-header .sub-text {
+      color: rgba(255, 215, 100, 0.3);
+      font-size: 13px;
+    }
+
+    .payment-modal-box .qr-section {
+      background: rgba(255,255,255,0.02);
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid rgba(255, 215, 100, 0.06);
+      margin: 12px 0 20px 0;
+      text-align: center;
+    }
+    .payment-modal-box .qr-section .qr-label {
+      color: rgba(255, 215, 100, 0.4);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .payment-modal-box .qr-section .qr-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 8px;
+    }
+    .payment-modal-box .qr-section .qr-container img {
+      max-width: 220px;
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 215, 100, 0.1);
+      background: #fff;
+      padding: 8px;
+    }
+    .payment-modal-box .qr-section .upi-id {
+      color: #f5b342;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 10px;
+      background: rgba(245, 179, 66, 0.06);
+      padding: 8px 16px;
+      border-radius: 30px;
+      display: inline-block;
+      border: 1px solid rgba(245, 179, 66, 0.1);
+    }
+    .payment-modal-box .qr-section .copy-btn {
+      background: rgba(245, 179, 66, 0.08);
+      border: none;
+      color: #f5b342;
+      padding: 4px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 8px;
+      transition: 0.2s;
+    }
+    .payment-modal-box .qr-section .copy-btn:hover {
+      background: rgba(245, 179, 66, 0.15);
+    }
+
+    .payment-modal-box .form-group {
+      margin-bottom: 16px;
+    }
+    .payment-modal-box .form-group label {
+      display: block;
+      color: rgba(255, 215, 100, 0.4);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .payment-modal-box .form-group input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 215, 100, 0.08);
+      border-radius: 14px;
+      color: #f5b342;
+      font-size: 15px;
+      outline: none;
+    }
+    .payment-modal-box .form-group input:focus {
+      border-color: rgba(245, 179, 66, 0.3);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .payment-modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .payment-modal-actions button {
+      flex: 1;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 15px;
+    }
+    .payment-modal-actions .btn-submit {
+      background: linear-gradient(135deg, rgba(245, 179, 66, 0.15), rgba(245, 179, 66, 0.05));
+      border: 1px solid rgba(245, 179, 66, 0.2);
+      color: #f5b342;
+    }
+    .payment-modal-actions .btn-submit:hover {
+      background: linear-gradient(135deg, rgba(245, 179, 66, 0.25), rgba(245, 179, 66, 0.08));
+      transform: translateY(-2px);
+    }
+    .payment-modal-actions .btn-close {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.4);
+    }
+    .payment-modal-actions .btn-close:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .payment-modal-actions .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .payment-status {
+      text-align: center;
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: 13px;
+      display: none;
+    }
+    .payment-status.success {
+      display: block;
+      color: #2ed573;
+      background: rgba(46, 213, 115, 0.08);
+      border: 1px solid rgba(46, 213, 115, 0.1);
+    }
+    .payment-status.error {
+      display: block;
+      color: #ff4757;
+      background: rgba(255, 71, 87, 0.08);
+      border: 1px solid rgba(255, 71, 87, 0.1);
+    }
+
+    .payment-modal-box::-webkit-scrollbar {
+      width: 4px;
+    }
+    .payment-modal-box::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .payment-modal-box::-webkit-scrollbar-thumb {
+      background: rgba(245, 179, 66, 0.2);
+      border-radius: 4px;
+    }
+
+    .smc-video-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .smc-video-item {
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 16px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,215,100,0.05);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: 0.2s;
+      cursor: pointer;
+      box-shadow: 0 4px 12px -6px rgba(0,0,0,0.5);
+    }
+    .smc-video-item:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(245,179,66,0.15);
+    }
+    .smc-video-item .video-thumb {
+      width: 80px;
+      height: 60px;
+      border-radius: 12px;
+      background: rgba(245,179,66,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f5b342;
+      font-size: 24px;
+      flex-shrink: 0;
+      border: 1px solid rgba(245,179,66,0.05);
+      overflow: hidden;
+      position: relative;
+    }
+    .smc-video-item .video-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .smc-video-item .video-thumb .play-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 28px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    .smc-video-item .video-info {
+      flex: 1;
+    }
+    .smc-video-item .video-info .video-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #f5b342;
+      letter-spacing: 0.2px;
+    }
+    .smc-video-item .video-info .video-desc {
+      font-size: 12px;
+      color: rgba(255,215,100,0.4);
+      margin-top: 2px;
+    }
+    .smc-video-item .video-play {
+      color: rgba(255,215,100,0.2);
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage">
+  <div class="login-logo">
+    <i class="fas fa-chart-line"></i>
+    <h1>Trading Learning</h1>
+    <p>MASTER THE MARKETS</p>
+  </div>
+
+  <div class="login-box">
+    <div class="form-group">
+      <label><i class="fas fa-envelope"></i> Email Address</label>
+      <input type="email" id="loginEmail" placeholder="Enter your email" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label><i class="fas fa-lock"></i> Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+    </div>
+
+    <div id="loginError" class="login-error"></div>
+    <div id="loginSuccess" class="login-success"></div>
+
+    <button class="login-btn" id="loginBtn">
+      <i class="fas fa-sign-in-alt"></i> Login
+    </button>
+
+    <div class="forgot-link">
+      <a href="#" id="forgotPasswordLink"><i class="fas fa-key"></i> Forgot Password?</a>
+    </div>
+
+    <div style="text-align:center;margin-top:12px;color:rgba(255,215,100,0.2);font-size:13px;">
+      Don't have an account? <a href="#" id="showSignupLink" style="color:#f5b342;opacity:0.6;text-decoration:none;">Sign Up</a>
+    </div>
+  </div>
+
+  <div class="login-footer">
+    <i class="fas fa-shield-alt"></i> Secure • Firebase Authentication
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD MODAL -->
+<div class="forgot-modal-overlay" id="forgotModal">
+  <div class="forgot-modal-box">
+    <h3><i class="fas fa-key" style="margin-right: 10px;"></i>Reset Password</h3>
+    <p class="sub-text">Enter your email address and we'll send you a password reset link</p>
+    
+    <div class="form-group">
+      <label><i class="fas fa-envelope"></i> Email Address</label>
+      <input type="email" id="forgotEmail" placeholder="Enter your registered email" autocomplete="email">
+    </div>
+
+    <div id="forgotStatus" class="forgot-status"></div>
+
+    <div class="forgot-modal-actions">
+      <button class="btn-cancel" id="forgotCancel">Cancel</button>
+      <button class="btn-send" id="forgotSendBtn">
+        <i class="fas fa-paper-plane"></i> Send Reset Link
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNUP PAGE -->
+<div id="signupPage">
+  <div class="login-logo">
+    <i class="fas fa-chart-line"></i>
+    <h1>Trading Learning</h1>
+    <p>CREATE ACCOUNT</p>
+  </div>
+
+  <div class="login-box">
+    <div class="form-group">
+      <label><i class="fas fa-user"></i> Full Name</label>
+      <input type="text" id="signupName" placeholder="Enter your full name">
+    </div>
+    <div class="form-group">
+      <label><i class="fas fa-envelope"></i> Email Address</label>
+      <input type="email" id="signupEmail" placeholder="Enter your email">
+    </div>
+    <div class="form-group">
+      <label><i class="fas fa-lock"></i> Password</label>
+      <input type="password" id="signupPassword" placeholder="Create a password (min 6 chars)">
+    </div>
+
+    <div id="signupError" class="login-error"></div>
+    <div id="signupSuccess" class="login-success"></div>
+
+    <button class="login-btn" id="signupBtn">
+      <i class="fas fa-user-plus"></i> Create Account
+    </button>
+
+    <div style="text-align:center;margin-top:16px;color:rgba(255,215,100,0.2);font-size:13px;">
+      Already have an account? <a href="#" id="showLoginLink" style="color:#f5b342;opacity:0.6;text-decoration:none;">Login</a>
+    </div>
+  </div>
+
+  <div class="login-footer">
+    <i class="fas fa-shield-alt"></i> Secure • Firebase Authentication
+  </div>
+</div>
+
+<!-- APP CONTAINER -->
+<div class="app-container" id="appContainer">
+  
+  <!-- HOME VIEW -->
+  <div id="homeView">
+    <div class="app-header">
+      <div class="header-left">
+        <h1><i class="fas fa-chart-line"></i> Trading Learning</h1>
+        <div class="sub">MASTER THE MARKETS</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="user-badge" id="userBadge">
+          <div class="avatar" id="userAvatar">U</div>
+          <span class="user-email" id="userEmail">user@email.com</span>
+        </div>
+        <button class="logout-btn" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="social-grid">
+      <a href="https://t.me/+RxVOC-58olsyMmM1" target="_blank" rel="noopener noreferrer" class="social-card telegram">
+        <div class="social-icon"><i class="fab fa-telegram-plane"></i></div>
+        <span class="social-label">Telegram</span>
+      </a>
+      <a href="https://www.youtube.com/@mster_trading_official" target="_blank" rel="noopener noreferrer" class="social-card youtube">
+        <div class="social-icon"><i class="fab fa-youtube"></i></div>
+        <span class="social-label">YouTube</span>
+      </a>
+      <a href="#" class="social-card instagram" id="instagramPlaceholder">
+        <div class="social-icon"><i class="fab fa-instagram"></i></div>
+        <span class="social-label">Instagram</span>
+      </a>
+      <a href="https://discord.gg/guNeAjV9D" target="_blank" rel="noopener noreferrer" class="social-card discord">
+        <div class="social-icon"><i class="fab fa-discord"></i></div>
+        <span class="social-label">Discord</span>
+      </a>
+    </div>
+
+    <div class="learning-grid">
+      <div class="learn-box" data-page="smc">
+        <div class="box-top">
+          <div class="box-icon"><i class="fas fa-brain"></i></div>
+          <div>
+            <div class="box-title">SMC</div>
+            <div class="box-sub">Smart Money</div>
+          </div>
+        </div>
+        <div class="box-arrow"><i class="fas fa-arrow-right"></i></div>
+      </div>
+      <div class="learn-box" data-page="ict">
+        <div class="box-top">
+          <div class="box-icon"><i class="fas fa-robot"></i></div>
+          <div>
+            <div class="box-title">ICT</div>
+            <div class="box-sub">Inner Circle</div>
+          </div>
+        </div>
+        <div class="box-arrow"><i class="fas fa-arrow-right"></i></div>
+      </div>
+      <div class="learn-box" data-page="alpha">
+        <div class="box-top">
+          <div class="box-icon"><i class="fas fa-rocket"></i></div>
+          <div>
+            <div class="box-title">ALPHA TRADER</div>
+            <div class="box-sub">Pro</div>
+          </div>
+        </div>
+        <div class="box-arrow"><i class="fas fa-arrow-right"></i></div>
+      </div>
+      <div class="learn-box" data-page="orderflow">
+        <div class="box-top">
+          <div class="box-icon"><i class="fas fa-water"></i></div>
+          <div>
+            <div class="box-title">ORDER FLOW</div>
+            <div class="box-sub">Microstructure</div>
+          </div>
+        </div>
+        <div class="box-arrow"><i class="fas fa-arrow-right"></i></div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <button class="nav-btn active" data-nav="home" id="navHome">
+        <i class="fas fa-home"></i><span>Home</span>
+      </button>
+      <button class="nav-btn" data-nav="courses" id="navCourses">
+        <i class="fas fa-graduation-cap"></i><span>Courses</span>
+      </button>
+      <button class="nav-btn" data-nav="profile" id="navProfile">
+        <i class="fas fa-user"></i><span>Profile</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- HOME DETAIL PAGES -->
+  <div id="homeDetailSMC" class="home-detail">
+    <div class="back-row">
+      <button class="back-btn" data-back="home"><i class="fas fa-arrow-left"></i></button>
+      <div>
+        <div class="detail-title">SMC</div>
+        <div class="detail-market">Smart Money Concepts</div>
+      </div>
+    </div>
+    <div class="option-list">
+      <div class="option-item" data-module="smc" data-topic="basics">
+        <div class="option-icon"><i class="fas fa-book"></i></div>
+        <span class="option-text">BASICS SMC</span>
+        <span class="option-arrow"><i class="fas fa-chevron-right"></i></span>
+      </div>
+      <div class="option-item" data-module="smc" data-topic="advanced">
+        <div class="option-icon"><i class="fas fa-fire"></i></div>
+        <span class="option-text">ADVANCED SMC</span>
+        <span class="option-arrow"><i class="fas fa-chevron-right"></i></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="homeDetailICT" class="home-detail">
+    <div class="back-row">
+      <button class="back-btn" data-back="home"><i class="fas fa-arrow-left"></i></button>
+      <div>
+        <div class="detail-title">ICT</div>
+        <div class="detail-market">Inner Circle Trading</div>
+      </div>
+    </div>
+    <div class="option-list">
+      <div class="option-item" data-module="ict" data-topic="complete">
+        <div class="option-icon"><i class="fas fa-layer-group"></i></div>
+        <span class="option-text">COMPLETE SMC</span>
+        <span class="option-arrow"><i class="fas fa-chevron-right"></i></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="homeDetailOrderFlow" class="home-detail">
+    <div class="back-row">
+      <button class="back-btn" data-back="home"><i class="fas fa-arrow-left"></i></button>
+      <div>
+        <div class="detail-title">ORDER FLOW</div>
+        <div class="detail-market">Market Microstructure</div>
+      </div>
+    </div>
+    <div class="option-list">
+      <div class="option-item" data-module="orderflow" data-topic="whatis">
+        <div class="option-icon"><i class="fas fa-question-circle"></i></div>
+        <span class="option-text">WHAT IS ORDER FLOW</span>
+        <span class="option-arrow"><i class="fas fa-chevron-right"></i></span>
+      </div>
+      <div class="option-item" data-module="orderflow" data-topic="complete">
+        <div class="option-icon"><i class="fas fa-graduation-cap"></i></div>
+        <span class="option-text">COMPLETE ORDER FLOW</span>
+        <span class="option-arrow"><i class="fas fa-chevron-right"></i></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="homeDetailAlpha" class="home-detail">
+    <div class="back-row">
+      <button class="back-btn" data-back="home"><i class="fas fa-arrow-left"></i></button>
+      <div>
+        <div class="detail-title">ALPHA TRADER</div>
+        <div class="detail-market">Pro Strategies</div>
+      </div>
+    </div>
+    <div class="option-list">
+      <div class="option-item" data-module="alpha" data-topic="psychology">
+        <div class="option-icon"><i class="fas fa-brain"></i></div>
+        <span class="option-text">TRADING PSYCHOLOGY</span>
+        <span class="option-arrow"><i class="fas fa-chevron-right"></i></span>
+      </div>
+      <div class="option-item" data-module="alpha" data-topic="professional">
+        <div class="option-icon"><i class="fas fa-chart-line"></i></div>
+        <span class="option-text">PROFESSIONAL TRADING</span>
+        <span class="option-arrow"><i class="fas fa-chevron-right"></i></span>
+      </div>
+      <div class="option-item" data-module="alpha" data-topic="mindset">
+        <div class="option-icon"><i class="fas fa-lightbulb"></i></div>
+        <span class="option-text">MINDSET</span>
+        <span class="option-arrow"><i class="fas fa-chevron-right"></i></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SMC BASICS VIDEO LIST -->
+  <div id="smcBasicsPage" class="home-detail">
+    <div class="back-row">
+      <button class="back-btn" data-back="homeDetail"><i class="fas fa-arrow-left"></i></button>
+      <div>
+        <div class="detail-title">BASICS SMC</div>
+        <div class="detail-market">Smart Money Concepts • 3 Lectures</div>
+      </div>
+    </div>
+    <div class="smc-video-list">
+      <div class="smc-video-item" data-video="https://www.youtube.com/embed/jwjjWHzEaJc">
+        <div class="video-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120' viewBox='0 0 160 120'%3E%3Crect width='160' height='120' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='32' font-weight='900' fill='%23f5b342'%3ESMC%3C/text%3E%3Ctext x='50%25' y='70%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='16' fill='%23f5b342' opacity='0.6'%3ELECTURE 1%3C/text%3E%3C/svg%3E" alt="Lecture 1">
+          <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">LECTURE 1</div>
+          <div class="video-desc">Introduction to Smart Money Concepts</div>
+        </div>
+        <div class="video-play"><i class="fas fa-chevron-right"></i></div>
+      </div>
+      <div class="smc-video-item" data-video="https://www.youtube.com/embed/4_33Wsc9fcg">
+        <div class="video-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120' viewBox='0 0 160 120'%3E%3Crect width='160' height='120' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='32' font-weight='900' fill='%23f5b342'%3ESMC%3C/text%3E%3Ctext x='50%25' y='70%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='16' fill='%23f5b342' opacity='0.6'%3ELECTURE 2%3C/text%3E%3C/svg%3E" alt="Lecture 2">
+          <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">LECTURE 2</div>
+          <div class="video-desc">Market Structure & Break of Structure</div>
+        </div>
+        <div class="video-play"><i class="fas fa-chevron-right"></i></div>
+      </div>
+      <div class="smc-video-item" data-video="https://www.youtube.com/embed/46wLDbl2_d0">
+        <div class="video-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120' viewBox='0 0 160 120'%3E%3Crect width='160' height='120' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='32' font-weight='900' fill='%23f5b342'%3ESMC%3C/text%3E%3Ctext x='50%25' y='70%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='16' fill='%23f5b342' opacity='0.6'%3ELECTURE 3%3C/text%3E%3C/svg%3E" alt="Lecture 3">
+          <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">LECTURE 3</div>
+          <div class="video-desc">Order Blocks & Fair Value Gaps</div>
+        </div>
+        <div class="video-play"><i class="fas fa-chevron-right"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SMC ADVANCED VIDEO LIST -->
+  <div id="smcAdvancedPage" class="home-detail">
+    <div class="back-row">
+      <button class="back-btn" data-back="homeDetail"><i class="fas fa-arrow-left"></i></button>
+      <div>
+        <div class="detail-title">ADVANCED SMC</div>
+        <div class="detail-market">Smart Money Concepts • 7 Lectures</div>
+      </div>
+    </div>
+    <div class="smc-video-list">
+      <div class="smc-video-item" data-video="https://www.youtube.com/embed/qEMhYlT6gwk">
+        <div class="video-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120' viewBox='0 0 160 120'%3E%3Crect width='160' height='120' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='32' font-weight='900' fill='%23f5b342'%3ESMC%3C/text%3E%3Ctext x='50%25' y='70%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='16' fill='%23f5b342' opacity='0.6'%3ELECTURE 4%3C/text%3E%3C/svg%3E" alt="Lecture 4">
+          <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">LECTURE 4</div>
+          <div class="video-desc">Liquidity Sweeps & Stop Hunts</div>
+        </div>
+        <div class="video-play"><i class="fas fa-chevron-right"></i></div>
+      </div>
+      <div class="smc-video-item" data-video="https://www.youtube.com/embed/zCj2SWbpmOk">
+        <div class="video-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120' viewBox='0 0 160 120'%3E%3Crect width='160' height='120' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='32' font-weight='900' fill='%23f5b342'%3ESMC%3C/text%3E%3Ctext x='50%25' y='70%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='16' fill='%23f5b342' opacity='0.6'%3ELECTURE 5%3C/text%3E%3C/svg%3E" alt="Lecture 5">
+          <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">LECTURE 5</div>
+          <div class="video-desc">MSS & CHoCH Advanced Entries</div>
+        </div>
+        <div class="video-play"><i class="fas fa-chevron-right"></i></div>
+      </div>
+      <div class="smc-video-item" data-video="https://www.youtube.com/embed/A1LOTQ0R8ww">
+        <div class="video-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120' viewBox='0 0 160 120'%3E%3Crect width='160' height='120' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='32' font-weight='900' fill='%23f5b342'%3ESMC%3C/text%3E%3Ctext x='50%25' y='70%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='16' fill='%23f5b342' opacity='0.6'%3ELECTURE 6%3C/text%3E%3C/svg%3E" alt="Lecture 6">
+          <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">LECTURE 6</div>
+          <div class="video-desc">Order Flow & Volume Analysis</div>
+        </div>
+        <div class="video-play"><i class="fas fa-chevron-right"></i></div>
+      </div>
+      <div class="smc-video-item" data-video="https://www.youtube.com/embed/ZGRXswei3kI">
+        <div class="video-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120' viewBox='0 0 160 120'%3E%3Crect width='160' height='120' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='32' font-weight='900' fill='%23f5b342'%3ESMC%3C/text%3E%3Ctext x='50%25' y='70%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='16' fill='%23f5b342' opacity='0.6'%3ELECTURE 7%3C/text%3E%3C/svg%3E" alt="Lecture 7">
+          <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">LECTURE 7</div>
+          <div class="video-desc">Advanced Risk Management</div>
+        </div>
+        <div class="video-play"><i class="fas fa-chevron-right"></i></div>
+      </div>
+      <div class="smc-video-item" data-video="https://www.youtube.com/embed/omZpI1DbYRI">
+        <div class="video-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120' viewBox='0 0 160 120'%3E%3Crect width='160' height='120' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='32' font-weight='900' fill='%23f5b342'%3ESMC%3C/text%3E%3Ctext x='50%25' y='70%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='16' fill='%23f5b342' opacity='0.6'%3ELECTURE 8%3C/text%3E%3C/svg%3E" alt="Lecture 8">
+          <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">LECTURE 8</div>
+          <div class="video-desc">Trade Entry Models & Confluence</div>
+        </div>
+        <div class="video-play"><i class="fas fa-chevron-right"></i></div>
+      </div>
+      <div class="smc-video-item" data-video="https://www.youtube.com/embed/4vRHblHQWvA">
+        <div class="video-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120' viewBox='0 0 160 120'%3E%3Crect width='160' height='120' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='32' font-weight='900' fill='%23f5b342'%3ESMC%3C/text%3E%3Ctext x='50%25' y='70%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='16' fill='%23f5b342' opacity='0.6'%3ELECTURE 9%3C/text%3E%3C/svg%3E" alt="Lecture 9">
+          <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">LECTURE 9</div>
+          <div class="video-desc">Multi-Timeframe Analysis</div>
+        </div>
+        <div class="video-play"><i class="fas fa-chevron-right"></i></div>
+      </div>
+      <div class="smc-video-item" data-video="https://www.youtube.com/embed/CK5jXz_io38">
+        <div class="video-thumb">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='120' viewBox='0 0 160 120'%3E%3Crect width='160' height='120' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='32' font-weight='900' fill='%23f5b342'%3ESMC%3C/text%3E%3Ctext x='50%25' y='70%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='16' fill='%23f5b342' opacity='0.6'%3ELECTURE 10%3C/text%3E%3C/svg%3E" alt="Lecture 10">
+          <div class="play-overlay"><i class="fas fa-play-circle"></i></div>
+        </div>
+        <div class="video-info">
+          <div class="video-title">LECTURE 10</div>
+          <div class="video-desc">Live Market Analysis & Execution</div>
+        </div>
+        <div class="video-play"><i class="fas fa-chevron-right"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIDEO DETAIL PAGE -->
+  <div id="videoDetailPage" class="video-detail">
+    <div class="back-row">
+      <button class="back-btn" data-back="videoList"><i class="fas fa-arrow-left"></i></button>
+      <div>
+        <div class="detail-title" id="videoDetailTitle">Video</div>
+        <div class="detail-market" id="videoDetailModule">Loading...</div>
+      </div>
+    </div>
+    <div class="video-player-container" id="videoPlayerContainer">
+      <div class="video-placeholder">
+        <i class="fas fa-play-circle"></i>
+        <p>Loading video...</p>
+      </div>
+    </div>
+    <div class="video-detail-title" id="videoDetailName">Video Title</div>
+    <div class="video-detail-desc" id="videoDetailDesc">Video description goes here...</div>
+  </div>
+
+  <!-- COURSES PAGE -->
+  <div id="coursesPage" class="page-view">
+    <div class="app-header" style="margin-bottom: 8px;">
+      <div class="header-left" style="width:100%;">
+        <h1 style="font-size: 24px;"><i class="fas fa-graduation-cap" style="color:#f5b342;"></i> Courses</h1>
+        <div class="sub">Choose your learning path</div>
+      </div>
+    </div>
+
+    <div class="courses-grid">
+      <div class="course-box" data-course="smc">
+        <div class="course-icon"><i class="fas fa-brain"></i></div>
+        <div class="course-title">SMC</div>
+        <div class="course-sub">Smart Money</div>
+      </div>
+      <div class="course-box" data-course="ict">
+        <div class="course-icon"><i class="fas fa-robot"></i></div>
+        <div class="course-title">ICT</div>
+        <div class="course-sub">Inner Circle</div>
+      </div>
+      <div class="course-box" data-course="orderflow">
+        <div class="course-icon"><i class="fas fa-water"></i></div>
+        <div class="course-title">ORDER FLOW</div>
+        <div class="course-sub">Microstructure</div>
+      </div>
+      <div class="course-box" data-course="alpha">
+        <div class="course-icon"><i class="fas fa-rocket"></i></div>
+        <div class="course-title">ALPHA TRADER</div>
+        <div class="course-sub">Pro Strategies</div>
+      </div>
+    </div>
+
+    <div class="bottom-nav" style="margin-top: auto;">
+      <button class="nav-btn" data-nav="home" id="navHomeFromCourses">
+        <i class="fas fa-home"></i><span>Home</span>
+      </button>
+      <button class="nav-btn active" data-nav="courses" id="navCoursesFromCourses">
+        <i class="fas fa-graduation-cap"></i><span>Courses</span>
+      </button>
+      <button class="nav-btn" data-nav="profile" id="navProfileFromCourses">
+        <i class="fas fa-user"></i><span>Profile</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- COURSE DETAIL PAGES -->
+  <div id="courseDetailSMC" class="course-detail">
+    <div class="back-row">
+      <button class="back-btn" data-back="courses"><i class="fas fa-arrow-left"></i></button>
+      <div>
+        <div class="detail-title">SMC</div>
+        <div class="detail-market">Indian Market + Forex Market</div>
+        <div class="detail-badge"><i class="fas fa-check-circle"></i> BASIC TO ADVANCED SMC</div>
+      </div>
+    </div>
+    <div class="course-image">
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'%3E%3Crect width='800' height='600' fill='%230a0a12'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='80' font-weight='900' fill='%23f5b342' letter-spacing='12'%3ESECRET%3C/text%3E%3Ctext x='50%25' y='62%25' dominant-baseline='central' text-anchor='middle' font-family='Inter, sans-serif' font-size='28' font-weight='600' fill='%23f5b342' opacity='0.4' letter-spacing='6'%3ESMART MONEY CONCEPT%3C/text%3E%3Crect x='50' y='70' width='700' height='2' fill='%23f5b342' opacity='0.1'/%3E%3C/svg%3E" alt="SMC">
+    </div>
+    <div class="detail-description">
+      <h3><i class="fas fa-info-circle" style="margin-right: 10px;"></i> ABOUT THIS COURSE</h3>
+      <p>Smart Money Concepts (SMC) is a comprehensive trading methodology that focuses on understanding institutional order flow, market structure, and liquidity dynamics. This course takes you from the foundational principles to advanced execution strategies used by professional traders.</p>
+      <ul>
+        <li><i class="fas fa-check-circle"></i> Market Structure & Break of Structure (BOS)</li>
+        <li><i class="fas fa-check-circle"></i> Order Blocks & Fair Value Gaps (FVG)</li>
+        <li><i class="fas fa-check-circle"></i> Liquidity Sweeps & Stop Hunts</li>
+        <li><i class="fas fa-check-circle"></i> Advanced Entry Models (MSS, CHoCH)</li>
+        <li><i class="fas fa-check-circle"></i> Risk Management & Position Sizing</li>
+        <li><i class="fas fa-check-circle"></i> Real-time Market Analysis & Trade Execution</li>
+      </ul>
+      <p style="margin-top: 14px; color: rgba(255,215,100,0.5); font-size: 13px;">✓ 40+ hours of video content  •  ✓ Live trading sessions  •  ✓ Community support</p>
+    </div>
+    <button class="buy-course-btn" data-course="smc">
+      <i class="fas fa-shopping-cart"></i> BUY COURSE <span class="price-tag">📈 ₹4,999</span>
+    </button>
+  </div>
+
+  <div id="courseDetailICT" class="course-detail">
+    <div class="back-row">
+      <button class="back-btn" data-back="courses"><i class="fas fa-arrow-left"></i></button>
+      <div>
+        <div class="detail-title">ICT</div>
+        <div class="detail-market">Indian Market + Forex Market</div>
+        <div class="detail-badge"><i class="fas fa-check-circle"></i> BASIC TO ADVANCED ICT</div>
+      </div>
+    </div>
+    <div class="course-image">
+      <img src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=600&fit=crop&crop=center" alt="ICT">
+    </div>
+    <div class="detail-description">
+      <h3><i class="fas fa-info-circle" style="margin-right: 10px;"></i> ABOUT THIS COURSE</h3>
+      <p>Inner Circle Trading (ICT) is a renowned trading methodology that deciphers market movements through the lens of smart money algorithms. This course provides a deep dive into the concepts that have made ICT one of the most sought-after trading frameworks.</p>
+      <ul>
+        <li><i class="fas fa-check-circle"></i> ICT Market Structure & PD Arrays</li>
+        <li><i class="fas fa-check-circle"></i> Fair Value Gaps (FVG) & Order Blocks</li>
+        <li><i class="fas fa-check-circle"></i> Liquidity Concepts & Killzones</li>
+        <li><i class="fas fa-check-circle"></i> Advanced Entry Techniques (2022 Model)</li>
+        <li><i class="fas fa-check-circle"></i> Fibonacci & Harmonic Patterns</li>
+        <li><i class="fas fa-check-circle"></i> Algorithmic Trading & Institutional Flow</li>
+      </ul>
+      <p style="margin-top: 14px; color: rgba(255,215,100,0.5); font-size: 13px;">✓ 50+ hours of video content  •  ✓ Weekly live webinars  •  ✓ Mentorship program</p>
+    </div>
+    <button class="buy-course-btn" data-course="ict">
+      <i class="fas fa-shopping-cart"></i> BUY COURSE <span class="price-tag">📈 ₹4,999</span>
+    </button>
+  </div>
+
+  <div id="courseDetailOrderFlow" class="course-detail">
+    <div class="back-row">
+      <button class="back-btn" data-back="courses"><i class="fas fa-arrow-left"></i></button>
+      <div>
+        <div class="detail-title">ORDER FLOW</div>
+        <div class="detail-market">Forex Market</div>
+        <div class="detail-badge"><i class="fas fa-check-circle"></i> BASIC TO ADVANCED ORDER FLOW</div>
+      </div>
+    </div>
+    <div class="course-image">
+      <img src="https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=800&h=600&fit=crop&crop=center" alt="Order Flow">
+    </div>
+    <div class="detail-description">
+      <h3><i class="fas fa-info-circle" style="margin-right: 10px;"></i> ABOUT THIS COURSE</h3>
+      <p>Order Flow trading is the art of reading the market's footprint by analyzing volume, delta, and market depth. This course teaches you how to interpret the actual transactions happening in the market to gain a true edge.</p>
+      <ul>
+        <li><i class="fas fa-check-circle"></i> What is Order Flow & Market Microstructure</li>
+        <li><i class="fas fa-check-circle"></i> Volume Profile & Market Delta</li>
+        <li><i class="fas fa-check-circle"></i> Footprint Charts & Imbalance</li>
+        <li><i class="fas fa-check-circle"></i> Absorption & Exhaustion Patterns</li>
+        <li><i class="fas fa-check-circle"></i> Cumulative Delta & Divergence</li>
+        <li><i class="fas fa-check-circle"></i> Order Flow Strategies for Forex</li>
+      </ul>
+      <p style="margin-top: 14px; color: rgba(255,215,100,0.5); font-size: 13px;">✓ 35+ hours of video content  •  ✓ Real-time chart analysis  •  ✓ Trading simulator access</p>
+    </div>
+    <button class="buy-course-btn" data-course="orderflow">
+      <i class="fas fa-shopping-cart"></i> BUY COURSE <span class="price-tag">📈 ₹4,999</span>
+    </button>
+  </div>
+
+  <div id="courseDetailAlpha" class="course-detail">
+    <div class="back-row">
+      <button class="back-btn" data-back="courses"><i class="fas fa-arrow-left"></i></button>
+      <div>
+        <div class="detail-title">ALPHA TRADER</div>
+        <div class="detail-market">Indian Market + Forex Market</div>
+        <div class="detail-badge"><i class="fas fa-check-circle"></i> BASIC TO ADVANCED ALPHA</div>
+      </div>
+    </div>
+    <div class="course-image">
+      <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop&crop=center&sat=-100" alt="Alpha Trader">
+    </div>
+    <div class="detail-description">
+      <h3><i class="fas fa-info-circle" style="margin-right: 10px;"></i> ABOUT THIS COURSE</h3>
+      <p>The Alpha Trader program is designed for traders who want to achieve consistent profitability through a combination of technical mastery, psychological conditioning, and advanced risk management. This is the ultimate edge-building course.</p>
+      <ul>
+        <li><i class="fas fa-check-circle"></i> Advanced Technical Analysis & Confluence</li>
+        <li><i class="fas fa-check-circle"></i> Trading Psychology & Emotional Discipline</li>
+        <li><i class="fas fa-check-circle"></i> High-Probability Setups & Entry Models</li>
+        <li><i class="fas fa-check-circle"></i> Multi-Timeframe Analysis & Context</li>
+        <li><i class="fas fa-check-circle"></i> Risk-Reward Optimization & Position Sizing</li>
+        <li><i class="fas fa-check-circle"></i> Creating a Personal Trading Plan & Journal</li>
+      </ul>
+      <p style="margin-top: 14px; color: rgba(255,215,100,0.5); font-size: 13px;">✓ 45+ hours of video content  •  ✓ One-on-one coaching  •  ✓ Proprietary indicators</p>
+    </div>
+    <button class="buy-course-btn" data-course="alpha">
+      <i class="fas fa-shopping-cart"></i> BUY COURSE <span class="price-tag">📈 ₹4,999</span>
+    </button>
+  </div>
+
+  <!-- PROFILE PAGE -->
+  <div id="profilePage" class="page-view">
+    <div class="app-header" style="margin-bottom: 8px;">
+      <div class="header-left" style="width:100%;">
+        <h1 style="font-size: 24px;"><i class="fas fa-user" style="color:#f5b342;"></i> Profile</h1>
+        <div class="sub">Manage your account</div>
+      </div>
+    </div>
+
+    <div class="profile-container">
+      <div class="profile-avatar">
+        <div class="avatar-placeholder" id="profileAvatar">U</div>
+        <button class="edit-avatar-btn" id="editAvatarBtn">
+          <i class="fas fa-camera"></i>
+        </button>
+      </div>
+
+      <div class="upload-progress" id="uploadProgress">
+        <span id="uploadStatus">Uploading...</span>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <div class="profile-name" id="profileName">User Name</div>
+      <div class="profile-role">TRADER</div>
+
+      <div class="profile-card">
+        <div class="profile-field">
+          <div class="field-left">
+            <i class="fas fa-user"></i>
+            <span class="field-label">Full Name</span>
+          </div>
+          <div>
+            <span class="field-value" id="profileFieldName">Not set</span>
+            <button class="edit-field-btn" data-field="name">Edit</button>
+          </div>
+        </div>
+
+        <div class="profile-field">
+          <div class="field-left">
+            <i class="fas fa-envelope"></i>
+            <span class="field-label">Email</span>
+          </div>
+          <div>
+            <span class="field-value" id="profileFieldEmail">Not set</span>
+            <button class="edit-field-btn" data-field="email">Edit</button>
+          </div>
+        </div>
+
+        <div class="profile-field">
+          <div class="field-left">
+            <i class="fas fa-phone"></i>
+            <span class="field-label">Phone Number</span>
+          </div>
+          <div>
+            <span class="field-value" id="profileFieldPhone">Not set</span>
+            <button class="edit-field-btn" data-field="phone" id="phoneEditBtn">
+              <span id="phoneEditText">Set</span>
+            </button>
+            <span class="field-verified" id="phoneVerified" style="display:none;">
+              <i class="fas fa-check-circle"></i> Verified
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-plan">
+        <i class="fas fa-crown plan-icon"></i>
+        <div class="plan-name" id="profilePlanName">Free Plan</div>
+        <div class="plan-status">Current Subscription</div>
+        <div class="plan-badge" id="profilePlanBadge">🔓 Basic Access</div>
+      </div>
+    </div>
+
+    <div class="bottom-nav" style="margin-top: auto;">
+      <button class="nav-btn" data-nav="home" id="navHomeFromProfile">
+        <i class="fas fa-home"></i><span>Home</span>
+      </button>
+      <button class="nav-btn" data-nav="courses" id="navCoursesFromProfile">
+        <i class="fas fa-graduation-cap"></i><span>Courses</span>
+      </button>
+      <button class="nav-btn active" data-nav="profile" id="navProfileFromProfile">
+        <i class="fas fa-user"></i><span>Profile</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <h3 id="modalTitle">Edit Field</h3>
+    <div class="form-group">
+      <label id="modalLabel">Enter new value</label>
+      <input type="text" id="modalInput" placeholder="Enter value...">
+      <div class="hint" id="modalHint"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modalCancel">Cancel</button>
+      <button class="btn-save" id="modalSave">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="payment-modal-overlay" id="paymentModal">
+  <div class="payment-modal-box">
+    <div class="payment-header">
+      <div class="course-name" id="paymentCourseName">SMC</div>
+      <div class="price-display">₹4,999</div>
+      <div class="sub-text">Complete Course • Lifetime Access</div>
+    </div>
+
+    <div class="qr-section">
+      <div class="qr-label"><i class="fas fa-qrcode"></i> SCAN TO PAY</div>
+      <div class="qr-container">
+        <img id="qrCodeImage" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23ffffff'/%3E%3Crect x='10' y='10' width='80' height='80' fill='%23000000'/%3E%3Crect x='100' y='10' width='80' height='80' fill='%23000000'/%3E%3Crect x='190' y='10' width='80' height='80' fill='%23000000'/%3E%3Crect x='10' y='100' width='80' height='80' fill='%23000000'/%3E%3Crect x='100' y='100' width='80' height='80' fill='%23ffffff'/%3E%3Crect x='190' y='100' width='80' height='80' fill='%23000000'/%3E%3Crect x='10' y='190' width='80' height='80' fill='%23000000'/%3E%3Crect x='100' y='190' width='80' height='80' fill='%23000000'/%3E%3Crect x='190' y='190' width='80' height='80' fill='%23000000'/%3E%3C/svg%3E" alt="QR Code">
+      </div>
+      <div>
+        <span class="upi-id">📱 UPI: tradinglearning@upi</span>
+        <button class="copy-btn" id="copyUpiBtn"><i class="fas fa-copy"></i> Copy</button>
+      </div>
+      <div style="margin-top:10px;color:rgba(255,215,100,0.2);font-size:11px;">Scan with any UPI app (Google Pay, PhonePe, Paytm)</div>
+    </div>
+
+    <div class="form-group">
+      <label><i class="fas fa-receipt"></i> UTR / Transaction ID</label>
+      <input type="text" id="paymentUtr" placeholder="Enter your UTR number from payment app">
+    </div>
+
+    <div id="paymentStatus" class="payment-status"></div>
+
+    <div class="payment-modal-actions">
+      <button class="btn-close" id="paymentClose">Close</button>
+      <button class="btn-submit" id="paymentSubmit">
+        <i class="fas fa-check-circle"></i> Submit UTR
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ================================================================
+  // FIREBASE CONFIGURATION
+  // ================================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyBc6C8KKxsidmCp2QTdBD6Urv_QJJmVhUI",
+    authDomain: "trading-learning-260ac.firebaseapp.com",
+    databaseURL: "https://trading-learning-260ac-default-rtdb.firebaseio.com/",
+    projectId: "trading-learning-260ac",
+    storageBucket: "trading-learning-260ac.firebasestorage.app",
+    messagingSenderId: "547628136815",
+    appId: "1:547628136815:web:104b039214fe5deeded09a"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const database = firebase.database();
+  const storage = firebase.storage();
+
+  // ================================================================
+  // DOM ELEMENTS
+  // ================================================================
+  const loginPage = document.getElementById('loginPage');
+  const signupPage = document.getElementById('signupPage');
+  const appContainer = document.getElementById('appContainer');
+  
+  const loginEmail = document.getElementById('loginEmail');
+  const loginPassword = document.getElementById('loginPassword');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginError = document.getElementById('loginError');
+  const loginSuccess = document.getElementById('loginSuccess');
+
+  const signupName = document.getElementById('signupName');
+  const signupEmail = document.getElementById('signupEmail');
+  const signupPassword = document.getElementById('signupPassword');
+  const signupBtn = document.getElementById('signupBtn');
+  const signupError = document.getElementById('signupError');
+  const signupSuccess = document.getElementById('signupSuccess');
+
+  const showSignupLink = document.getElementById('showSignupLink');
+  const showLoginLink = document.getElementById('showLoginLink');
+
+  const logoutBtn = document.getElementById('logoutBtn');
+  const userEmail = document.getElementById('userEmail');
+  const userAvatar = document.getElementById('userAvatar');
+
+  const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+  const forgotModal = document.getElementById('forgotModal');
+  const forgotEmail = document.getElementById('forgotEmail');
+  const forgotSendBtn = document.getElementById('forgotSendBtn');
+  const forgotCancel = document.getElementById('forgotCancel');
+  const forgotStatus = document.getElementById('forgotStatus');
+
+  // Profile Elements
+  const profilePage = document.getElementById('profilePage');
+  const profileAvatar = document.getElementById('profileAvatar');
+  const profileName = document.getElementById('profileName');
+  const profileFieldName = document.getElementById('profileFieldName');
+  const profileFieldEmail = document.getElementById('profileFieldEmail');
+  const profileFieldPhone = document.getElementById('profileFieldPhone');
+  const profilePlanName = document.getElementById('profilePlanName');
+  const profilePlanBadge = document.getElementById('profilePlanBadge');
+  const phoneEditBtn = document.getElementById('phoneEditBtn');
+  const phoneEditText = document.getElementById('phoneEditText');
+  const phoneVerified = document.getElementById('phoneVerified');
+
+  const uploadProgress = document.getElementById('uploadProgress');
+  const uploadStatus = document.getElementById('uploadStatus');
+  const progressFill = document.getElementById('progressFill');
+
+  const editModal = document.getElementById('editModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalLabel = document.getElementById('modalLabel');
+  const modalInput = document.getElementById('modalInput');
+  const modalHint = document.getElementById('modalHint');
+  const modalSave = document.getElementById('modalSave');
+  const modalCancel = document.getElementById('modalCancel');
+
+  // Payment Modal Elements
+  const paymentModal = document.getElementById('paymentModal');
+  const paymentCourseName = document.getElementById('paymentCourseName');
+  const paymentUtr = document.getElementById('paymentUtr');
+  const paymentStatus = document.getElementById('paymentStatus');
+  const paymentSubmit = document.getElementById('paymentSubmit');
+  const paymentClose = document.getElementById('paymentClose');
+  const copyUpiBtn = document.getElementById('copyUpiBtn');
+  const qrCodeImage = document.getElementById('qrCodeImage');
+
+  // SMC Pages
+  const smcBasicsPage = document.getElementById('smcBasicsPage');
+  const smcAdvancedPage = document.getElementById('smcAdvancedPage');
+
+  // ================================================================
+  // AUTH STATE
+  // ================================================================
+  function showLoginPage() {
+    loginPage.style.display = 'flex';
+    signupPage.classList.remove('active');
+    signupPage.style.display = 'none';
+    appContainer.classList.remove('active');
+    appContainer.style.display = 'none';
+    loginBtn.disabled = false;
+    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+    loginError.classList.remove('show');
+    loginSuccess.classList.remove('show');
+    loginEmail.value = '';
+    loginPassword.value = '';
+  }
+
+  function showSignupPage() {
+    loginPage.style.display = 'none';
+    signupPage.style.display = 'flex';
+    signupPage.classList.add('active');
+    appContainer.classList.remove('active');
+    appContainer.style.display = 'none';
+    signupBtn.disabled = false;
+    signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+    signupError.classList.remove('show');
+    signupSuccess.classList.remove('show');
+    signupName.value = '';
+    signupEmail.value = '';
+    signupPassword.value = '';
+  }
+
+  function showApp() {
+    loginPage.style.display = 'none';
+    signupPage.style.display = 'none';
+    signupPage.classList.remove('active');
+    appContainer.style.display = 'flex';
+    appContainer.classList.add('active');
+  }
+
+  function showError(element, message) {
+    element.textContent = message;
+    element.classList.add('show');
+    if (element === loginError) loginSuccess.classList.remove('show');
+    if (element === signupError) signupSuccess.classList.remove('show');
+    setTimeout(() => element.classList.remove('show'), 5000);
+  }
+
+  function showSuccess(element, message) {
+    element.textContent = message;
+    element.classList.add('show');
+    if (element === loginSuccess) loginError.classList.remove('show');
+    if (element === signupSuccess) signupError.classList.remove('show');
+    setTimeout(() => element.classList.remove('show'), 3000);
+  }
+
+  function updateUserUI(user) {
+    if (user) {
+      const name = user.displayName || user.email || 'User';
+      const initial = name.charAt(0).toUpperCase();
+      userEmail.textContent = user.email || '';
+      userAvatar.textContent = initial;
+      profileAvatar.textContent = initial;
+    }
+  }
+
+  // ================================================================
+  // FORGOT PASSWORD
+  // ================================================================
+  forgotPasswordLink.addEventListener('click', function(e) {
+    e.preventDefault();
+    forgotModal.classList.add('active');
+    forgotEmail.value = '';
+    forgotStatus.className = 'forgot-status';
+    forgotStatus.textContent = '';
+    forgotSendBtn.disabled = false;
+    forgotSendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
+    setTimeout(() => forgotEmail.focus(), 100);
+  });
+
+  forgotCancel.addEventListener('click', function() {
+    forgotModal.classList.remove('active');
+  });
+
+  forgotModal.addEventListener('click', function(e) {
+    if (e.target === this) {
+      forgotModal.classList.remove('active');
+    }
+  });
+
+  forgotSendBtn.addEventListener('click', async function() {
+    const email = forgotEmail.value.trim();
+    forgotStatus.className = 'forgot-status';
+    forgotStatus.textContent = '';
+
+    if (!email) {
+      forgotStatus.className = 'forgot-status error';
+      forgotStatus.textContent = '❌ Please enter your email address.';
+      return;
+    }
+
+    if (!email.includes('@') || !email.includes('.')) {
+      forgotStatus.className = 'forgot-status error';
+      forgotStatus.textContent = '❌ Please enter a valid email address.';
+      return;
+    }
+
+    forgotSendBtn.disabled = true;
+    forgotSendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+    try {
+      await auth.sendPasswordResetEmail(email);
+      forgotStatus.className = 'forgot-status success';
+      forgotStatus.textContent = '✅ Password reset link sent to ' + email + '! Please check your email inbox (and spam folder).';
+      forgotSendBtn.innerHTML = '<i class="fas fa-check"></i> Sent!';
+      setTimeout(() => {
+        forgotModal.classList.remove('active');
+        forgotSendBtn.disabled = false;
+        forgotSendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
+        forgotStatus.className = 'forgot-status';
+        forgotStatus.textContent = '';
+        showSuccess(loginSuccess, '📧 Password reset link sent! Check your email.');
+        setTimeout(() => loginSuccess.classList.remove('show'), 5000);
+      }, 4000);
+    } catch (error) {
+      console.error('Password reset error:', error);
+      let message = '❌ Failed to send reset link.';
+      if (error.code === 'auth/user-not-found') message = '❌ No account found with this email address.';
+      else if (error.code === 'auth/invalid-email') message = '❌ Invalid email address.';
+      else if (error.code === 'auth/too-many-requests') message = '❌ Too many requests. Please try again later.';
+      else if (error.code === 'auth/network-request-failed') message = '❌ Network error. Please check your internet connection.';
+      forgotStatus.className = 'forgot-status error';
+      forgotStatus.textContent = message;
+      forgotSendBtn.disabled = false;
+      forgotSendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
+    }
+  });
+
+  forgotEmail.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') forgotSendBtn.click();
+    if (e.key === 'Escape') forgotCancel.click();
+  });
+
+  // ================================================================
+  // LOGIN
+  // ================================================================
+  loginBtn.addEventListener('click', async function() {
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value.trim();
+
+    loginError.classList.remove('show');
+    loginSuccess.classList.remove('show');
+
+    // FIX: Better validation
+    if (!email) {
+      showError(loginError, '⚠️ Please enter your email address.');
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+      return;
+    }
+    if (!password) {
+      showError(loginError, '⚠️ Please enter your password.');
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+      return;
+    }
+    if (password.length < 6) {
+      showError(loginError, '⚠️ Password must be at least 6 characters.');
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+      return;
+    }
+
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+
+    try {
+      await auth.signInWithEmailAndPassword(email, password);
+      showSuccess(loginSuccess, '✅ Login successful! Welcome back.');
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+      setTimeout(() => loginSuccess.classList.remove('show'), 3000);
+    } catch (error) {
+      console.error('Login error:', error);
+      let message = '❌ Login failed. Please try again.';
+      if (error.code === 'auth/user-not-found') message = '❌ No account found with this email. Please sign up first.';
+      else if (error.code === 'auth/wrong-password') message = '❌ Incorrect Password ❌';
+      else if (error.code === 'auth/invalid-email') message = '❌ Invalid email address.';
+      else if (error.code === 'auth/too-many-requests') message = '❌ Too many failed attempts. Please try again later.';
+      else if (error.code === 'auth/user-disabled') message = '❌ This account has been disabled. Contact admin.';
+      else if (error.code === 'auth/network-request-failed') message = '❌ Network error. Please check your internet connection.';
+      else if (error.code === 'auth/invalid-credential') message = '❌ Invalid credentials. Please check your email and password.';
+      showError(loginError, message);
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+    }
+  });
+
+  // ================================================================
+  // SIGNUP
+  // ================================================================
+  signupBtn.addEventListener('click', async function() {
+    const name = signupName.value.trim();
+    const email = signupEmail.value.trim();
+    const password = signupPassword.value.trim();
+
+    signupError.classList.remove('show');
+    signupSuccess.classList.remove('show');
+
+    // FIX: Better validation
+    if (!name) { 
+      showError(signupError, '⚠️ Please enter your full name.'); 
+      return; 
+    }
+    if (!email) { 
+      showError(signupError, '⚠️ Please enter your email address.'); 
+      return; 
+    }
+    if (!email.includes('@') || !email.includes('.')) {
+      showError(signupError, '⚠️ Please enter a valid email address.');
+      return;
+    }
+    if (!password) { 
+      showError(signupError, '⚠️ Please create a password.'); 
+      return; 
+    }
+    if (password.length < 6) { 
+      showError(signupError, '⚠️ Password must be at least 6 characters.'); 
+      return; 
+    }
+
+    signupBtn.disabled = true;
+    signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating account...';
+
+    try {
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      await userCredential.user.updateProfile({ displayName: name });
+      await database.ref('users/' + userCredential.user.uid).set({
+        displayName: name,
+        email: email,
+        phone: '',
+        phoneVerified: false,
+        plan: 'free',
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      });
+      showSuccess(signupSuccess, '✅ Account created successfully!');
+      signupBtn.disabled = false;
+      signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+      setTimeout(() => signupSuccess.classList.remove('show'), 3000);
+    } catch (error) {
+      console.error('Signup error:', error);
+      let message = '❌ Signup failed. Please try again.';
+      if (error.code === 'auth/email-already-in-use') message = '❌ Email already registered. Please login.';
+      else if (error.code === 'auth/invalid-email') message = '❌ Invalid email address.';
+      else if (error.code === 'auth/weak-password') message = '❌ Password too weak. Use 6+ characters.';
+      else if (error.code === 'auth/network-request-failed') message = '❌ Network error. Please check your internet connection.';
+      else if (error.code === 'auth/operation-not-allowed') message = '❌ Signup is currently disabled. Please contact support.';
+      showError(signupError, message);
+      signupBtn.disabled = false;
+      signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+    }
+  });
+
+  showSignupLink.addEventListener('click', function(e) { e.preventDefault(); showSignupPage(); });
+  showLoginLink.addEventListener('click', function(e) { e.preventDefault(); showLoginPage(); });
+
+  logoutBtn.addEventListener('click', async function() {
+    await auth.signOut();
+    showLoginPage();
+  });
+
+  // ================================================================
+  // AUTH STATE LISTENER
+  // ================================================================
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      showApp();
+      updateUserUI(user);
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+      signupBtn.disabled = false;
+      signupBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+      loginEmail.value = '';
+      loginPassword.value = '';
+      loadUserProfile(user.uid);
+      loadProfilePicture(user.uid);
+      signupPage.classList.remove('active');
+      signupPage.style.display = 'none';
+    } else {
+      showLoginPage();
+      hideAllViews();
+      homeView.classList.remove('hidden');
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('#navHome')?.classList.add('active');
+      signupName.value = '';
+      signupEmail.value = '';
+      signupPassword.value = '';
+      signupError.classList.remove('show');
+      signupSuccess.classList.remove('show');
+    }
+  });
+
+  // ================================================================
+  // PROFILE FUNCTIONS
+  // ================================================================
+  let currentUserData = {};
+  let isPhoneSet = false;
+
+  function loadUserProfile(userId) {
+    database.ref('users/' + userId).once('value').then((snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        currentUserData = data;
+        updateProfileUI(data);
+      }
+    }).catch((error) => {
+      console.error('Error loading profile:', error);
+    });
+  }
+
+  function updateProfileUI(data) {
+    const name = data.displayName || 'User';
+    profileName.textContent = name;
+    profileFieldName.textContent = name;
+    profileFieldEmail.textContent = data.email || 'Not set';
+    
+    const phone = data.phone || '';
+    if (phone && phone.trim() !== '') {
+      profileFieldPhone.textContent = phone;
+      phoneEditText.textContent = 'Edit';
+      isPhoneSet = true;
+      phoneVerified.style.display = 'inline';
+      phoneEditBtn.disabled = false;
+    } else {
+      profileFieldPhone.textContent = 'Not set';
+      phoneEditText.textContent = 'Set';
+      isPhoneSet = false;
+      phoneVerified.style.display = 'none';
+      phoneEditBtn.disabled = false;
+    }
+    
+    const plan = data.plan || 'free';
+    const planNames = {
+      'free': 'Free Plan',
+      'basic': 'Basic Plan',
+      'pro': 'Pro Plan',
+      'premium': 'Premium Plan'
+    };
+    const planBadges = {
+      'free': '🔓 Basic Access',
+      'basic': '📘 Starter Access',
+      'pro': '🚀 Pro Access',
+      'premium': '👑 Premium Access'
+    };
+    profilePlanName.textContent = planNames[plan] || 'Free Plan';
+    profilePlanBadge.textContent = planBadges[plan] || '🔓 Basic Access';
+  }
+
+  // ================================================================
+  // PROFILE PICTURE UPLOAD
+  // ================================================================
+  document.getElementById('editAvatarBtn').addEventListener('click', function() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    
+    fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file.');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB.');
+        return;
+      }
+      uploadProfilePicture(file);
+      document.body.removeChild(fileInput);
+    });
+  });
+
+  function uploadProfilePicture(file) {
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    uploadProgress.classList.add('show');
+    uploadStatus.textContent = 'Uploading profile picture...';
+    progressFill.style.width = '0%';
+    
+    const storageRef = storage.ref('profile_pictures/' + user.uid + '/' + Date.now() + '_' + file.name);
+    const uploadTask = storageRef.put(file);
+    
+    uploadTask.on('state_changed', 
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        progressFill.style.width = progress + '%';
+        uploadStatus.textContent = 'Uploading... ' + Math.round(progress) + '%';
+      },
+      (error) => {
+        console.error('Upload error:', error);
+        uploadProgress.classList.remove('show');
+        alert('Error uploading image. Please try again.');
+      },
+      () => {
+        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+          database.ref('users/' + user.uid + '/profilePic').set(downloadURL).then(() => {
+            profileAvatar.innerHTML = `<img src="${downloadURL}" alt="Profile">`;
+            userAvatar.innerHTML = `<img src="${downloadURL}" alt="Avatar" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">`;
+            uploadStatus.textContent = '✅ Upload complete!';
+            setTimeout(() => {
+              uploadProgress.classList.remove('show');
+              progressFill.style.width = '0%';
+            }, 2000);
+          }).catch((err) => {
+            console.error('Error saving profile pic URL:', err);
+            uploadProgress.classList.remove('show');
+          });
+        }).catch((err) => {
+          console.error('Error getting download URL:', err);
+          uploadProgress.classList.remove('show');
+        });
+      }
+    );
+  }
+
+  function loadProfilePicture(userId) {
+    database.ref('users/' + userId + '/profilePic').once('value').then((snapshot) => {
+      const url = snapshot.val();
+      if (url) {
+        profileAvatar.innerHTML = `<img src="${url}" alt="Profile">`;
+        userAvatar.innerHTML = `<img src="${url}" alt="Avatar" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">`;
+      }
+    }).catch((err) => console.error('Error loading profile pic:', err));
+  }
+
+  // ================================================================
+  // EDIT MODAL
+  // ================================================================
+  let currentEditField = '';
+
+  document.querySelectorAll('.edit-field-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const field = this.dataset.field;
+      
+      if (field === 'phone' && isPhoneSet) {
+        alert('📱 Phone number is already verified and cannot be changed.\n\nIf you need to update your phone number, please contact support.');
+        return;
+      }
+      
+      currentEditField = field;
+      
+      const labels = {
+        'name': 'Full Name',
+        'email': 'Email Address',
+        'phone': 'Phone Number'
+      };
+      
+      const hints = {
+        'name': 'Enter your full name (e.g., John Doe)',
+        'email': 'Enter your email address',
+        'phone': '⚠️ Phone number can only be set once. Make sure it\'s correct!'
+      };
+      
+      const values = {
+        'name': profileFieldName.textContent,
+        'email': profileFieldEmail.textContent,
+        'phone': profileFieldPhone.textContent
+      };
+      
+      modalTitle.textContent = 'Edit ' + labels[field];
+      modalLabel.textContent = 'Enter new ' + labels[field].toLowerCase();
+      modalHint.textContent = hints[field] || '';
+      modalInput.value = (values[field] !== 'Not set') ? values[field] : '';
+      modalInput.placeholder = 'Enter new ' + labels[field].toLowerCase() + '...';
+      
+      if (field === 'phone') {
+        modalHint.style.color = 'rgba(255, 215, 100, 0.3)';
+      } else {
+        modalHint.style.color = 'rgba(255, 215, 100, 0.2)';
+      }
+      
+      editModal.classList.add('active');
+      setTimeout(() => modalInput.focus(), 100);
+    });
+  });
+
+  modalCancel.addEventListener('click', function() {
+    editModal.classList.remove('active');
+  });
+
+  modalSave.addEventListener('click', function() {
+    const newValue = modalInput.value.trim();
+    if (!newValue) {
+      alert('Please enter a value.');
+      return;
+    }
+    
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    if (currentEditField === 'phone' && isPhoneSet) {
+      alert('Phone number is already verified and cannot be changed.');
+      editModal.classList.remove('active');
+      return;
+    }
+    
+    if (currentEditField === 'phone') {
+      const cleanPhone = newValue.replace(/\s/g, '');
+      if (!cleanPhone.startsWith('+') || cleanPhone.length < 7) {
+        alert('Please enter a valid phone number with country code (e.g., +91 9876543210)');
+        return;
+      }
+    }
+    
+    const updates = {};
+    const fieldMap = {
+      'name': 'displayName',
+      'email': 'email',
+      'phone': 'phone'
+    };
+    
+    const dbField = fieldMap[currentEditField];
+    updates['users/' + user.uid + '/' + dbField] = newValue;
+    
+    if (currentEditField === 'phone') {
+      updates['users/' + user.uid + '/phoneVerified'] = true;
+    }
+    
+    if (currentEditField === 'name') {
+      user.updateProfile({ displayName: newValue }).catch(err => console.error(err));
+    }
+    
+    database.ref().update(updates).then(() => {
+      currentUserData[dbField] = newValue;
+      if (currentEditField === 'phone') {
+        currentUserData.phoneVerified = true;
+        isPhoneSet = true;
+      }
+      updateProfileUI(currentUserData);
+      updateUserUI(user);
+      editModal.classList.remove('active');
+      showSuccess(loginSuccess, '✅ Profile updated successfully!');
+      setTimeout(() => loginSuccess.classList.remove('show'), 3000);
+    }).catch((error) => {
+      console.error('Update error:', error);
+      alert('Error updating profile: ' + error.message);
+    });
+  });
+
+  editModal.addEventListener('click', function(e) {
+    if (e.target === this) {
+      editModal.classList.remove('active');
+    }
+  });
+
+  modalInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') modalSave.click();
+    if (e.key === 'Escape') modalCancel.click();
+  });
+
+  // ================================================================
+  // PAYMENT MODAL - BUY COURSE
+  // ================================================================
+  let selectedCourse = '';
+
+  document.querySelectorAll('.buy-course-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      selectedCourse = this.dataset.course;
+      const courseNames = {
+        'smc': 'SMC - Smart Money Concepts',
+        'ict': 'ICT - Inner Circle Trading',
+        'orderflow': 'ORDER FLOW - Market Microstructure',
+        'alpha': 'ALPHA TRADER - Pro Strategies'
+      };
+      paymentCourseName.textContent = courseNames[selectedCourse] || selectedCourse.toUpperCase();
+      paymentUtr.value = '';
+      paymentStatus.className = 'payment-status';
+      paymentStatus.textContent = '';
+      paymentSubmit.disabled = false;
+      paymentSubmit.innerHTML = '<i class="fas fa-check-circle"></i> Submit UTR';
+      paymentModal.classList.add('active');
+    });
+  });
+
+  paymentClose.addEventListener('click', function() {
+    paymentModal.classList.remove('active');
+  });
+
+  paymentModal.addEventListener('click', function(e) {
+    if (e.target === this) {
+      paymentModal.classList.remove('active');
+    }
+  });
+
+  copyUpiBtn.addEventListener('click', function() {
+    const upiId = 'tradinglearning@upi';
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(upiId).then(() => {
+        this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => {
+          this.innerHTML = '<i class="fas fa-copy"></i> Copy';
+        }, 2000);
+      }).catch(() => {
+        alert('UPI ID: ' + upiId);
+      });
+    } else {
+      alert('UPI ID: ' + upiId);
+    }
+  });
+
+  paymentSubmit.addEventListener('click', async function() {
+    const utr = paymentUtr.value.trim();
+    if (!utr) {
+      paymentStatus.className = 'payment-status error';
+      paymentStatus.textContent = '❌ Please enter your UTR / Transaction ID.';
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (!user) {
+      paymentStatus.className = 'payment-status error';
+      paymentStatus.textContent = '❌ You must be logged in.';
+      return;
+    }
+
+    paymentSubmit.disabled = true;
+    paymentSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+    try {
+      const purchaseData = {
+        course: selectedCourse,
+        utr: utr,
+        amount: 4999,
+        userId: user.uid,
+        userEmail: user.email,
+        userName: user.displayName || 'User',
+        status: 'pending',
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      };
+
+      await database.ref('purchases/' + user.uid + '/' + selectedCourse + '_' + Date.now()).set(purchaseData);
+
+      paymentStatus.className = 'payment-status success';
+      paymentStatus.textContent = '✅ UTR submitted successfully! Your purchase will be verified within 24 hours.';
+      paymentSubmit.innerHTML = '<i class="fas fa-check"></i> Submitted!';
+
+      setTimeout(() => {
+        paymentModal.classList.remove('active');
+        paymentSubmit.disabled = false;
+        paymentSubmit.innerHTML = '<i class="fas fa-check-circle"></i> Submit UTR';
+        paymentStatus.className = 'payment-status';
+        paymentStatus.textContent = '';
+      }, 4000);
+
+    } catch (error) {
+      console.error('Payment submission error:', error);
+      paymentStatus.className = 'payment-status error';
+      paymentStatus.textContent = '❌ Error submitting UTR. Please try again.';
+      paymentSubmit.disabled = false;
+      paymentSubmit.innerHTML = '<i class="fas fa-check-circle"></i> Submit UTR';
+    }
+  });
+
+  paymentUtr.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') paymentSubmit.click();
+    if (e.key === 'Escape') paymentClose.click();
+  });
+
+  // ================================================================
+  // APP STATE & NAVIGATION
+  // ================================================================
+  let currentModule = '';
+  let currentTopic = '';
+  let currentVideoId = '';
+  let currentUserId = '';
+
+  const homeView = document.getElementById('homeView');
+  const coursesPage = document.getElementById('coursesPage');
+  
+  const homeDetails = {
+    smc: document.getElementById('homeDetailSMC'),
+    ict: document.getElementById('homeDetailICT'),
+    orderflow: document.getElementById('homeDetailOrderFlow'),
+    alpha: document.getElementById('homeDetailAlpha')
+  };
+
+  const courseDetails = {
+    smc: document.getElementById('courseDetailSMC'),
+    ict: document.getElementById('courseDetailICT'),
+    orderflow: document.getElementById('courseDetailOrderFlow'),
+    alpha: document.getElementById('courseDetailAlpha')
+  };
+
+  const videoDetailPage = document.getElementById('videoDetailPage');
+  const videoPlayerContainer = document.getElementById('videoPlayerContainer');
+
+  const navHome = document.getElementById('navHome');
+  const navCourses = document.getElementById('navCourses');
+  const navProfile = document.getElementById('navProfile');
+  const navHomeFromCourses = document.getElementById('navHomeFromCourses');
+  const navCoursesFromCourses = document.getElementById('navCoursesFromCourses');
+  const navProfileFromCourses = document.getElementById('navProfileFromCourses');
+  const navHomeFromProfile = document.getElementById('navHomeFromProfile');
+  const navCoursesFromProfile = document.getElementById('navCoursesFromProfile');
+  const navProfileFromProfile = document.getElementById('navProfileFromProfile');
+
+  function hideAllViews() {
+    homeView.classList.add('hidden');
+    coursesPage.style.display = 'none';
+    coursesPage.classList.remove('active');
+    profilePage.classList.remove('active');
+    profilePage.style.display = 'none';
+    Object.values(homeDetails).forEach(d => {
+      d.classList.remove('active');
+      d.style.display = 'none';
+    });
+    Object.values(courseDetails).forEach(d => {
+      d.classList.remove('active');
+      d.style.display = 'none';
+    });
+    smcBasicsPage.classList.remove('active');
+    smcBasicsPage.style.display = 'none';
+    smcAdvancedPage.classList.remove('active');
+    smcAdvancedPage.style.display = 'none';
+    videoDetailPage.classList.remove('active');
+    videoDetailPage.style.display = 'none';
+  }
+
+  function showHome() {
+    hideAllViews();
+    homeView.classList.remove('hidden');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    navHome.classList.add('active');
+  }
+
+  function showCourses() {
+    hideAllViews();
+    coursesPage.style.display = 'flex';
+    coursesPage.classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    navCourses.classList.add('active');
+    navCoursesFromCourses.classList.add('active');
+  }
+
+  function showProfile() {
+    hideAllViews();
+    profilePage.style.display = 'flex';
+    profilePage.classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    navProfile.classList.add('active');
+    navProfileFromProfile.classList.add('active');
+    const user = auth.currentUser;
+    if (user) {
+      loadUserProfile(user.uid);
+      loadProfilePicture(user.uid);
+    }
+  }
+
+  function showHomeDetail(detailKey) {
+    hideAllViews();
+    const target = homeDetails[detailKey];
+    if (target) {
+      target.style.display = 'flex';
+      target.classList.add('active');
+    }
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  }
+
+  function showCourseDetail(detailKey) {
+    hideAllViews();
+    const target = courseDetails[detailKey];
+    if (target) {
+      target.style.display = 'flex';
+      target.classList.add('active');
+    }
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  }
+
+  function showSmcBasics() {
+    hideAllViews();
+    smcBasicsPage.style.display = 'flex';
+    smcBasicsPage.classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  }
+
+  function showSmcAdvanced() {
+    hideAllViews();
+    smcAdvancedPage.style.display = 'flex';
+    smcAdvancedPage.classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  }
+
+  function showVideoDetail(videoUrl, title, description) {
+    hideAllViews();
+    videoDetailPage.style.display = 'flex';
+    videoDetailPage.classList.add('active');
+    
+    document.getElementById('videoDetailTitle').textContent = title || 'Video';
+    document.getElementById('videoDetailModule').textContent = 'SMC';
+    document.getElementById('videoDetailName').textContent = title || 'Untitled';
+    document.getElementById('videoDetailDesc').textContent = description || 'No description available.';
+    
+    videoPlayerContainer.innerHTML = `<iframe src="${videoUrl}" allowfullscreen loading="lazy" allow="autoplay; encrypted-media" style="width:100%;height:100%;"></iframe>`;
+    
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  }
+
+  // ================================================================
+  // EVENT LISTENERS - APP
+  // ================================================================
+  document.querySelectorAll('.learn-box[data-page]').forEach(box => {
+    box.addEventListener('click', function(e) {
+      const page = this.dataset.page;
+      const map = { smc: 'smc', ict: 'ict', alpha: 'alpha', orderflow: 'orderflow' };
+      const key = map[page];
+      if (key && homeDetails[key]) {
+        showHomeDetail(key);
+      }
+    });
+  });
+
+  // SMC Option Items - Navigate to SMC Basics or Advanced
+  document.querySelectorAll('#homeDetailSMC .option-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      const topic = this.dataset.topic;
+      if (topic === 'basics') {
+        showSmcBasics();
+      } else if (topic === 'advanced') {
+        showSmcAdvanced();
+      }
+    });
+  });
+
+  // SMC Video Items - Play Video
+  document.querySelectorAll('.smc-video-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      const videoUrl = this.dataset.video;
+      const title = this.querySelector('.video-title')?.textContent || 'Video';
+      const desc = this.querySelector('.video-desc')?.textContent || 'No description';
+      if (videoUrl) {
+        showVideoDetail(videoUrl, title, desc);
+      }
+    });
+  });
+
+  document.querySelectorAll('.course-box[data-course]').forEach(box => {
+    box.addEventListener('click', function(e) {
+      const course = this.dataset.course;
+      if (course && courseDetails[course]) {
+        showCourseDetail(course);
+      }
+    });
+  });
+
+  document.querySelectorAll('.back-btn[data-back="home"]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showHome();
+    });
+  });
+
+  document.querySelectorAll('.back-btn[data-back="courses"]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showCourses();
+    });
+  });
+
+  document.querySelectorAll('.back-btn[data-back="homeDetail"]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showHome();
+    });
+  });
+
+  document.querySelectorAll('.back-btn[data-back="videoList"]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      showHome();
+    });
+  });
+
+  function setupNav(btn, view) {
+    btn.addEventListener('click', function() {
+      if (view === 'home') showHome();
+      else if (view === 'courses') showCourses();
+      else if (view === 'profile') showProfile();
+    });
+  }
+
+  setupNav(navHome, 'home');
+  setupNav(navCourses, 'courses');
+  setupNav(navProfile, 'profile');
+  setupNav(navHomeFromCourses, 'home');
+  setupNav(navCoursesFromCourses, 'courses');
+  setupNav(navProfileFromCourses, 'profile');
+  setupNav(navHomeFromProfile, 'home');
+  setupNav(navCoursesFromProfile, 'courses');
+  setupNav(navProfileFromProfile, 'profile');
+
+  document.getElementById('instagramPlaceholder')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    alert('📸 Instagram link placeholder — paste your URL here later.');
+  });
+
+  // ================================================================
+  // ENTER KEY SUPPORT
+  // ================================================================
+  loginPassword.addEventListener('keydown', function(e) { if (e.key === 'Enter') loginBtn.click(); });
+  signupPassword.addEventListener('keydown', function(e) { if (e.key === 'Enter') signupBtn.click(); });
+  loginEmail.addEventListener('keydown', function(e) { if (e.key === 'Enter') loginPassword.focus(); });
+  signupEmail.addEventListener('keydown', function(e) { if (e.key === 'Enter') signupPassword.focus(); });
+  signupName.addEventListener('keydown', function(e) { if (e.key === 'Enter') signupEmail.focus(); });
+
+  // ================================================================
+  // START
+  // ================================================================
+  showLoginPage();
+
+  console.log('🔥 Trading Learning App Loaded Successfully!');
+  console.log('📧 Forgot Password: Make sure Email/Password is enabled in Firebase Console.');
+  console.log('📱 Profile: Click Edit to update your profile.');
+  console.log('💰 Buy Course: Each course has a BUY COURSE button at the bottom.');
+  console.log('📱 UPI: tradinglearning@upi (Copy button available)');
+</script>
+</body>
+</html>
